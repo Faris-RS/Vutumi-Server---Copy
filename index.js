@@ -81,7 +81,7 @@ const io = new Server(server, {
     //   "http://vutumi-react.s3-website.ap-south-1.amazonaws.com",
     //   "https://roaring-centaur-5c9228.netlify.app",
     // ],
-    origin: "https://roaring-centaur-5c9228.netlify.app",
+    origin: "*",
     methods: ["POST", "GET", "PUT", "DELETE", "PATCH"],
     credentials: true,
     allowedHeaders: [
