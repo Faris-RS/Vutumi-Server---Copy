@@ -73,89 +73,89 @@ const server = app.listen(process.env.PORT, () =>
   console.log(`Server started on ${process.env.PORT}`)
 );
 
-// const io = new Server(server, {
-//   cors: {
-//     // origin: [
-//     //   "http://localhost:4000",
-//     //   "http://localhost:8080",
-//     //   "http://vutumi-react.s3-website.ap-south-1.amazonaws.com",
-//     //   "https://roaring-centaur-5c9228.netlify.app",
-//     // ],
-//     origin: "https://roaring-centaur-5c9228.netlify.app",
-//     methods: ["POST", "GET", "PUT", "DELETE", "PATCH"],
-//     credentials: true,
-//     allowedHeaders: [
-//       "Origin",
-//       "X-Requested-With",
-//       "Content-Type",
-//       "Accept",
-//       "Authorization",
-//     ],
-//   },
-// });
+const io = new Server(server, {
+  cors: {
+    // origin: [
+    //   "http://localhost:4000",
+    //   "http://localhost:8080",
+    //   "http://vutumi-react.s3-website.ap-south-1.amazonaws.com",
+    //   "https://roaring-centaur-5c9228.netlify.app",
+    // ],
+    origin: "https://roaring-centaur-5c9228.netlify.app",
+    methods: ["POST", "GET", "PUT", "DELETE", "PATCH"],
+    credentials: true,
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+    ],
+  },
+});
 
-// global.onlineUsers = new Map();
+global.onlineUsers = new Map();
 
-// io.on("connection", (socket) => {
-//   // Search
-//   socket.on("search", async (query) => {
-//     const results = {
-//       data: await userModel
-//         .find({
-//           $or: [
-//             { firstName: { $regex: query, $options: "i" } },
-//             { lastName: { $regex: query, $options: "i" } },
-//           ],
-//         })
-//         .limit(5),
-//     };
-//     socket.emit("searchResult", results);
-//   });
+io.on("connection", (socket) => {
+  // Search
+  socket.on("search", async (query) => {
+    const results = {
+      data: await userModel
+        .find({
+          $or: [
+            { firstName: { $regex: query, $options: "i" } },
+            { lastName: { $regex: query, $options: "i" } },
+          ],
+        })
+        .limit(5),
+    };
+    socket.emit("searchResult", results);
+  });
 
-//   // Chat
-//   global.chatSocket = socket;
-//   socket.on("add-user", (userId) => {
-//     onlineUsers.set(userId, socket.id);
-//   });
+  // Chat
+  global.chatSocket = socket;
+  socket.on("add-user", (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
 
-//   socket.on("send-msg", (data) => {
-//     const sendUserSocket = onlineUsers.get(data.to);
-//     if (sendUserSocket) {
-//       socket.to(sendUserSocket).emit("msg-recieve", data.msg);
-//     }
-//   });
+  socket.on("send-msg", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("msg-recieve", data.msg);
+    }
+  });
 
-//   // Tic Tac Toe
-//   socket.on("joinRoom", (roomCode) => {
-//     console.log(`A user joined the room ${roomCode}`);
-//     socket.join(roomCode);
-//   });
+  // Tic Tac Toe
+  socket.on("joinRoom", (roomCode) => {
+    console.log(`A user joined the room ${roomCode}`);
+    socket.join(roomCode);
+  });
 
-//   socket.on("play", ({ id, roomCode }) => {
-//     console.log(`play at ${id} to ${roomCode}`);
-//     socket.broadcast.to(roomCode).emit("updateGame", id);
-//   });
+  socket.on("play", ({ id, roomCode }) => {
+    console.log(`play at ${id} to ${roomCode}`);
+    socket.broadcast.to(roomCode).emit("updateGame", id);
+  });
 
-//   socket.on("disconnect", () => {
-//     console.log("User Disconnected");
-//   });
+  socket.on("disconnect", () => {
+    console.log("User Disconnected");
+  });
 
-//   let waitingRoom = null;
-//   socket.on("joinWaitingRoom", () => {
-//     console.log(waitingRoom);
-//     if (waitingRoom === null) {
-//       // Create a new waiting room
-//       waitingRoom = uuidv4();
-//       socket.join(waitingRoom);
-//       console.log(`user ${socket.id} joined waiting room ${waitingRoom}`);
-//     } else {
-//       // Join the existing waiting room
-//       socket.join(waitingRoom);
-//       console.log(`user ${socket.id} joined waiting room ${waitingRoom}`);
+  let waitingRoom = null;
+  socket.on("joinWaitingRoom", () => {
+    console.log(waitingRoom);
+    if (waitingRoom === null) {
+      // Create a new waiting room
+      waitingRoom = uuidv4();
+      socket.join(waitingRoom);
+      console.log(`user ${socket.id} joined waiting room ${waitingRoom}`);
+    } else {
+      // Join the existing waiting room
+      socket.join(waitingRoom);
+      console.log(`user ${socket.id} joined waiting room ${waitingRoom}`);
 
-//       // Notify the first user that the second user joined
-//       io.to(waitingRoom).emit("startGame");
-//       waitingRoom = null; // Reset waiting room
-//     }
-//   });
-// });
+      // Notify the first user that the second user joined
+      io.to(waitingRoom).emit("startGame");
+      waitingRoom = null; // Reset waiting room
+    }
+  });
+});
