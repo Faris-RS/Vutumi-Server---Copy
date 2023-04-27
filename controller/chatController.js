@@ -1,22 +1,28 @@
 import userModel from "../models/userModel.js";
 import Messages from "../models/messageModel.js";
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 
 export const userData = async (req, res) => {
-  if(req.body.token) {
+  if (req.body.token) {
     const response = {
-      data: await userModel.findOne({_id: jwt.verify(req.body.token, process.env.TOKEN_SECRET).userId})
-    }
-    res.status(200).json(response)
+      data: await userModel.findOne({
+        _id: jwt.verify(req.body.token, process.env.TOKEN_SECRET).userId,
+      }),
+    };
+    res.status(200).json(response);
   }
-}
+};
 
 export const getAllUsers = async (req, res, next) => {
   try {
-    const users = await userModel
-      .find({ _id: { $ne: req.params.id } })
-      .select(["email", "firstName", "avatarImage", "_id"]);
-    return res.json(users);
+    const user = await userModel.findOne({ _id: req.params.id });
+    const contacts = user.contacts;
+    console.log(contacts);
+    const people = [];
+    for (let i = 0; i < contacts.length; i++) {
+      people[i] = await userModel.findOne({ _id: contacts[i] });
+    }
+    return res.json(people);
   } catch (ex) {
     next(ex);
   }
